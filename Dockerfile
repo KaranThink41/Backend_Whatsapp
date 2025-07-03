@@ -29,7 +29,23 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Production stage
+# Development stage
+FROM base as development
+
+# Set environment variables for development
+ENV DJANGO_SETTINGS_MODULE=server.settings \
+    DEBUG=True
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Change to server directory for running commands
+WORKDIR /app/server
+
+# Run the development server with auto-reload
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# Production stage (LAST so it's used by default on Render)
 FROM base as production
 
 # Set environment variables for production
@@ -62,19 +78,3 @@ CMD gunicorn \
     --error-logfile - \
     --log-level=info \
     server.wsgi:application
-
-# Development stage
-FROM base as development
-
-# Set environment variables for development
-ENV DJANGO_SETTINGS_MODULE=server.settings \
-    DEBUG=True
-
-# Expose the port the app runs on
-EXPOSE 8000
-
-# Change to server directory for running commands
-WORKDIR /app/server
-
-# Run the development server with auto-reload
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
