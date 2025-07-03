@@ -15,9 +15,11 @@ import os
 # Load environment variables from .env file only when not in a container
 if os.getenv('ENVIRONMENT') != 'docker':
     from dotenv import load_dotenv
-    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    # Go up three levels from server/server/settings.py to reach the project root
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.env')
     if os.path.exists(env_path):
         load_dotenv(env_path)
+        print(f"Loaded environment variables from: {env_path}")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,7 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^#!pi)jc4k(v@+q_-=6=7_i@zje7tq)b@!$=76oc)k=s2kzg_8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app', '.now.sh', '.onrender.com', 'pharmacy-wm5d.onrender.com','whatsappbot-v0ev.onrender.com']
 
@@ -166,10 +168,13 @@ CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = []
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-if os.path.exists(STATIC_DIR):
-    STATICFILES_DIRS.append(STATIC_DIR)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'pharmacy/static'),
+]
+
+# Ensure the staticfiles directory exists
+os.makedirs(STATIC_ROOT, exist_ok=True)
 
 # Media files (user uploaded content)
 MEDIA_URL = '/media/'
