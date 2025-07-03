@@ -52,20 +52,29 @@ FROM base as production
 ENV DJANGO_SETTINGS_MODULE=server.settings \
     PORT=8000 \
     WEB_CONCURRENCY=4 \
-    DEBUG=False
+    DEBUG=False \
+    PYTHONUNBUFFERED=1
 
 # Create and switch to a non-root user
 RUN useradd -m myuser && chown -R myuser:myuser /app
-USER myuser
 
 # Change to server directory for running commands
 WORKDIR /app/server
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create static and media directories with proper permissions
+RUN mkdir -p /app/server/staticfiles /app/server/media \
+    && chown -R myuser:myuser /app/server/staticfiles /app/server/media
 
-# Run database migrations
-RUN python manage.py migrate --noinput
+# Switch to non-root user
+USER myuser
+
+# Requirements are already installed in the base image.
+
+# Collect static files
+RUN python manage.py collectstatic --noinput --clear
+
+# Run database migrations (only if needed, might want to run this separately in production)
+# RUN python manage.py migrate --noinput
 
 # Use gunicorn as the production server
 CMD gunicorn \
